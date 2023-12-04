@@ -1,0 +1,137 @@
+
+FLOW:
+    SOCKET -> BIND -> LISTEN -> ACCEPT -> READ/WRITE
+
+
+From #include<sys/socket.h> 
+    we get the int socket(int domain, int type, int protocol)
+
+    domain specifieas a comunication domain and selects the protocol family
+    The families are constant headers in <sys/socket.h> 
+    for TCP AF_INET is _USE_DECLSPECS_FOR_SAL
+
+    Type specifies 'communication semantics'
+    running man tcp(7) and man ip(7) we get that SOCK_STREAM is a full duplex byte stream that well use for TCP
+    
+    Protocol us the particular protocol to be used by the socket
+    We use 0 for TCP
+
+
+    it returns an int file descriptor for the socket, it describes an open in this case the socket which we will be able
+    to read and write to
+
+errno
+    int var that can be set to signify what exactly has gone wrong. 
+    "man 3 perror"
+    we can use perror(3) to print the error, it will translate errno to a human readable form
+
+BINDING
+
+$ man bind 
+    bind is included in <sys/socket.h>
+
+    int bind(int sockfd, const struct sockaddr *addr, socklen_t addrelen)
+    bind() assigns the
+       address specified by addr to the socket referred to by the file
+       descriptor sockfd. addrlen specifies the size, in bytes, of the address
+       structure pointed to by addr. Traditionally, this operation is called
+       “assigning a name to a socket”.
+
+$ man 7 ip
+    struct sockaddr_in {
+    sa_family_t    sin_family; /* address family: AF_INET */
+    in_port_t      sin_port;   /* port in network byte order */
+    struct in_addr sin_addr;   /* internet address */
+    };
+
+    /* Internet address. */
+    struct in_addr {
+    uint32_t       s_addr;     /* address in network byte order */
+    };
+
+
+LISTEN 
+    $ man 2 listen
+
+    NAME
+        listen - listen for connections on a socket
+
+    SYNOPSIS
+        #include <sys/types.h>          /* See NOTES */
+        #include <sys/socket.h>
+
+        int listen(int sockfd, int backlog);
+
+    DESCRIPTION
+        listen() marks the socket referred to by sockfd as a passive socket,
+        that is, as a socket that will be used to accept incoming connection
+        requests using accept(2).
+
+    backlog
+    This integer will define how many pending connections will be queued up for sockfd socket, before it will be refused. For now, we will set this to 128. Further connection requests block until a pending connection is accepted. So, it defines the number of connections that are accepted, 
+    but not yet handled by the application, until accept(2) gets it off the queue.
+
+
+ACCEPT 
+    $ man 2 accept
+
+    NAME
+        accept, accept4 - accept a connection on a socket
+
+    SYNOPSIS
+        #include <sys/types.h>          /* See NOTES */
+        #include <sys/socket.h>
+
+        int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+
+    It will return a non-negative integer that is a file descriptor for the accepted socket. On error, 
+    it will return -1, and errno will be set.
+
+$ man 2 close
+
+    NAME
+        close - close a file descriptor
+
+    SYNOPSIS
+        #include <unistd.h>
+
+        int close(int fd);
+
+$ man 2 read
+
+    NAME
+        read - read from a file descriptor
+
+    SYNOPSIS
+        #include <unistd.h>
+
+        ssize_t read(int fd, void *buf, size_t count);
+
+    The function read(2) will read up to count bytes from the file descriptor fd into the buffer *buf. On success it will return the number of bytes that were read, and the file position is advanced by this number. On error -1 is returned and errno will be set as well.
+
+$ man 2 write
+
+NAME
+       write - write to a file descriptor
+
+        SYNOPSIS
+            #include <unistd.h>
+
+            ssize_t write(int fd, const void *buf, size_t count);
+
+            write() writes up to count bytes from the buffer starting at buf to the
+            file referred to by the file descriptor fd.
+
+The function write(2) will write bytes up to count from the buffer pointed to by buf to the file referenced by the file descriptor fd. On success it will return number of bytes written. On error -1 is returned and errno will be set appropriately.
+
+
+NAME
+       getsockname - get socket name
+
+SYNOPSIS
+       #include <sys/socket.h>
+
+       int getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+    
+    
+    //useful when logging
